@@ -5,8 +5,7 @@ from recipes import views
 urlpatterns = [
     url(r'^recipes/$', views.RecipeList.as_view()),
     url(r'^recipes/(?P<pk>[0-9]+)/$', views.RecipeDetail.as_view()),
-	url(r'^recipes/(?P<pk>[0-9]+)/ingredients/$', views.RecipeIngredientList.as_view()),
-	# url(r'^ingredients/$', views.RecipeIngredientView.as_view()),
+	url(r'^recipes/(?P<idRecipe>[0-9]+)/ingredients/$', views.RecipeIngredientList.as_view()),
 	url(r'^recipes/(?P<idRecipe>[0-9]+)/ingredients/(?P<idIngredient>[0-9]+)/$', views.RecipeIngredientView.as_view()),
 	
 	url(r'^ingredients/$', views.IngredientList.as_view()),

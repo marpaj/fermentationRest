@@ -33,36 +33,29 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id': {'read_only': False},
             'recipe': {'validators': []},
         }
-		
+
 class RecipeIngredientSerializer(serializers.Serializer):
 	id = serializers.IntegerField()
-	ingredients = IngredientSerializer(many=True)
-		
+	name = serializers.CharField(required=False, read_only=True, max_length=30)
+	
 	def create(self, validated_data):
-		ingredients_data = validated_data.pop('ingredients')
-		recipe = Recipe.objects.get(id=validated_data['id'])
-		
-		for ingredient in ingredients_data:
-			ingredient = Ingredient.objects.get(id=ingredient.get('id'))
-			recipe.ingredients.add(ingredient)
-		return recipe
+		recipe = self.context["recipe"]
+		id = validated_data['id']
+		ingredient = Ingredient.objects.get(id=id)
+		recipe.ingredients.add(ingredient)
+		return ingredient
 		
 # class RecipeIngredientSerializer(serializers.Serializer):
 	# id = serializers.IntegerField()
 	# ingredients = IngredientSerializer(many=True)
-	
+		
 	# def create(self, validated_data):
-		# ingredients_data = validated_data['ingredients']
+		# ingredients_data = validated_data.pop('ingredients')
 		# recipe = Recipe.objects.get(id=validated_data['id'])
+		
 		# for ingredient in ingredients_data:
 			# ingredient = Ingredient.objects.get(id=ingredient.get('id'))
 			# recipe.ingredients.add(ingredient)
-		# return recipe
-		
-	# def update(self, recipe, validated_data):
-		# ingredient_data = validated_data['ingredients']
-		# newIngredient = Ingredient.objects.get(id=ingredient_data.get('id'))
-		# recipe.ingredients.add(newIngredient)
 		# return recipe
 		
 class ProductSerializer(serializers.ModelSerializer):

@@ -67,7 +67,7 @@ class RecipeTestCase(TestCase):
 		self.setup()
 		client = APIClient()
 		
-		data = {'id':1, 'ingredients':[{'id':1}]}
+		data = {'id':1}
 		response = client.post('/recipes/1/ingredients/', data, format='json')
 		
 		# Check that the response is 201 Created
@@ -81,7 +81,7 @@ class RecipeTestCase(TestCase):
 		self.setup()
 		client = APIClient()
 		
-		data = {'id':2, 'ingredients':[{'id':2},{'id':3}]}
+		data = {'id':2}
 		response = client.post('/recipes/2/ingredients/', data, format='json')
 		
 		# Check that the response is 201 Created
@@ -89,7 +89,7 @@ class RecipeTestCase(TestCase):
 		
 		# Check that number of ingredients of recipe is 1
 		recipe_with_ingredient = Recipe.objects.get(id=2)
-		self.assertEqual(recipe_with_ingredient.ingredients.count(), 3)
+		self.assertEqual(recipe_with_ingredient.ingredients.count(), 2)
 		
 	def test_delete_ingredient_recipe(self):
 		self.setup()

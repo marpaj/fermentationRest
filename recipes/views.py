@@ -21,7 +21,11 @@ class RecipeIngredientList(generics.ListCreateAPIView):
 	serializer_class = RecipeIngredientSerializer
 	
 	def get_queryset(self):
-		return Recipe.objects.filter(id=self.kwargs['pk'])
+		return Recipe.objects.get(id=self.kwargs['idRecipe']).ingredients.all()
+		
+	def get_serializer_context(self):
+		recipe = Recipe.objects.get(id=self.kwargs['idRecipe'])
+		return {"recipe": recipe}
 
 class RecipeIngredientView(APIView):
 	"""
@@ -40,16 +44,16 @@ class RecipeIngredientView(APIView):
 		except Ingredient.DoesNotExist:
 			raise Http404		
 	
-	# def get(self, request, idRecipe, format='json'):
-		# recipe = self.get_recipe(idRecipe)
-		# serializer = RecipeIngredientSerializer(recipe)
-		# return Response(serializer.data)
+	def get(self, request, idRecipe, idIngredient, format='json'):
+		recipe = self.get_recipe(idRecipe)
+		serializer = IngredientSerializer(recipe.ingredients.all(), many=True)
+		return Response(serializer.data)
 		
-	# def post(self, request, format='json'):
+	# def post(self, request, idRecipe, format='json'):
 		# serializer = RecipeIngredientSerializer(data=request.data)
 		# if serializer.is_valid():
 			# serializer.save()
-			# return Response(serializer.data, status=status.HTTP_201_CREATED)
+			# return Response(status=status.HTTP_201_CREATED)
 		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	
 	def delete(self, request, idRecipe, idIngredient, format='json'):
