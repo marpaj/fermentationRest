@@ -1,5 +1,5 @@
-from recipes.models import Product, Ingredient, Recipe, Test
-from recipes.serializers import IngredientSerializer, RecipeSerializer, RecipeIngredientSerializer, TestSerializer
+from recipes.models import Product, Ingredient, Recipe, Test, IngredientTested
+from recipes.serializers import IngredientSerializer, RecipeSerializer, RecipeIngredientSerializer, TestSerializer, IngredientTestedSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response

@@ -10,19 +10,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 			'name': {'required': False},
             'ingredient': {'validators': []},
         }
-
-class IngredientTestedSerializer(serializers.ModelSerializer):
-	ingredient = serializers.PrimaryKeyRelatedField(read_only=True)
-	class Meta:
-		model = IngredientTested
-		fields = ('id', 'ingredient', 'amount')
-		
-class TestSerializer(serializers.ModelSerializer):
-	ingredientsTested = IngredientTestedSerializer(many=True)
-	# ingredientsTested = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='ingredients_Tested')
-	class Meta:
-		model = Test
-		fields = ('id', 'date', 'vote', 'description', 'ingredientsTested')
 		
 class RecipeSerializer(serializers.ModelSerializer):
 	ingredients = IngredientSerializer(many=True, read_only=True)
@@ -45,23 +32,23 @@ class RecipeIngredientSerializer(serializers.Serializer):
 		recipe.ingredients.add(ingredient)
 		return ingredient
 		
-# class RecipeIngredientSerializer(serializers.Serializer):
-	# id = serializers.IntegerField()
-	# ingredients = IngredientSerializer(many=True)
-		
-	# def create(self, validated_data):
-		# ingredients_data = validated_data.pop('ingredients')
-		# recipe = Recipe.objects.get(id=validated_data['id'])
-		
-		# for ingredient in ingredients_data:
-			# ingredient = Ingredient.objects.get(id=ingredient.get('id'))
-			# recipe.ingredients.add(ingredient)
-		# return recipe
-		
 class ProductSerializer(serializers.ModelSerializer):
 	recipes = RecipeSerializer(many=True, allow_null =True)
 	class Meta:
 		model = Product
 		fields = ('id', 'name', 'recipes')
+
+class IngredientTestedSerializer(serializers.ModelSerializer):
+	ingredient = serializers.PrimaryKeyRelatedField(read_only=True)
+	class Meta:
+		model = IngredientTested
+		fields = ('id', 'ingredient', 'amount')
+		
+class TestSerializer(serializers.ModelSerializer):
+	ingredientsTested = IngredientTestedSerializer(many=True)
+	class Meta:
+		model = Test
+		fields = ('id', 'date', 'vote', 'description', 'ingredientsTested')
+		
 
 		
