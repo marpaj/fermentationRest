@@ -1,5 +1,5 @@
 from recipes.models import Product, Ingredient, Recipe, Test, IngredientTested
-from recipes.serializers import IngredientSerializer, RecipeSerializer, RecipeIngredientSerializer, TestSerializer, IngredientTestedSerializer
+from recipes.serializers import IngredientSerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,7 +22,8 @@ class RecipeIngredientList(generics.ListCreateAPIView):
 	
 	def get_queryset(self):
 		return Recipe.objects.get(id=self.kwargs['idRecipe']).ingredients.all()
-		
+	
+	# To pass a parameter to the serializer
 	def get_serializer_context(self):
 		recipe = Recipe.objects.get(id=self.kwargs['idRecipe'])
 		return {"recipe": recipe}
@@ -48,13 +49,6 @@ class RecipeIngredientView(APIView):
 		recipe = self.get_recipe(idRecipe)
 		serializer = IngredientSerializer(recipe.ingredients.all(), many=True)
 		return Response(serializer.data)
-		
-	# def post(self, request, idRecipe, format='json'):
-		# serializer = RecipeIngredientSerializer(data=request.data)
-		# if serializer.is_valid():
-			# serializer.save()
-			# return Response(status=status.HTTP_201_CREATED)
-		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	
 	def delete(self, request, idRecipe, idIngredient, format='json'):
 		recipe = self.get_recipe(idRecipe)
@@ -71,10 +65,77 @@ class IngredientDetail(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Ingredient.objects.all()
 	serializer_class = IngredientSerializer
 	
-class TestList(generics.ListCreateAPIView):
-	queryset = Test.objects.all()
-	serializer_class = TestSerializer
+class RecipeTestList(generics.ListCreateAPIView):
+	serializer_class = RecipeTestSerializer
 	
-class TestDetail(generics.RetrieveUpdateDestroyAPIView):
-	queryset = Test.objects.all()
-	serializer_class = TestSerializer
+	def get_queryset(self):
+		return Test.objects.filter(recipe=self.kwargs['idRecipe'])
+		
+	# To pass a parameter to the serializer
+	def get_serializer_context(self):
+		recipe = Recipe.objects.get(id=self.kwargs['idRecipe'])
+		return {"recipe": recipe}
+
+class TestDetail(APIView):
+	# def get_queryset(self):
+		# return Test.objects.filter(id=self.kwargs['idTest'])
+
+	def get_object(self, pk):
+		try:
+			return Test.objects.get(pk=pk)
+		except Snippet.DoesNotExist:
+			raise Http404
+
+	def get(self, request, pk, format=None):
+		test = self.get_object(pk)
+		serializer = TestSerializer(test)
+		return Response(serializer.data)
+
+	def put(self, request, pk, format=None):
+		test = self.get_object(pk)
+		serializer = TestSerializer(test, data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)	
+		
+# class TestDetail(generics.RetrieveUpdateDestroyAPIView):
+	# serializer_class = RecipeTestSerializer
+	# lookup_field='idTest'
+	# queryset = Test.objects.all()
+	
+	# def get_queryset(self):
+		# return Test.objects.filter(id=self.kwargs['idTest'])
+		
+	# def get_object(self):
+		# return Test.objects.all()#filter(id=idTest)
+	
+	# def get_recipe(self, idRecipe):
+		# try:
+			# return Recipe.objects.get(id=idRecipe)
+		# except Recipe.DoesNotExist:
+			# raise Http404
+	
+	# def get_test(self, idRecipe, idTest):
+		# try:
+			# return Test.objects.filter(id=idTest)
+		# except Ingredient.DoesNotExist:
+			# raise Http404
+	
+	# def get(self, request, idRecipe, idTest, format='json'):
+		# tests = self.get_test(idRecipe, idTest)
+		# serializer = TestSerializer(tests, many=True)
+		# return Response(serializer.data)
+		
+class BestTest(APIView):
+	"""
+	Class-based view for manage the best test
+	"""
+	def get(self, request, idRecipe, format='json'):
+		try:
+			tests = Test.objects.filter(recipe=idRecipe)
+			bestTest = tests.order_by('-vote').first()
+			serializer = TestSerializer(bestTest)
+			return Response(data=serializer.data, status=status.HTTP_204_NO_CONTENT)
+		except Recipe.DoesNotExist:
+			raise Http404

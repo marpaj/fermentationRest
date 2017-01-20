@@ -30,20 +30,25 @@ class Recipe(models.Model):
 class Test(models.Model):
 	date = models.DateTimeField(auto_now_add=True)
 	recipe = models.ForeignKey(Recipe, related_name='tests', on_delete=models.CASCADE)
+	# ingredientsTested = models.ManyToManyField(IngredientTested, related_name='ingredientsTested')
+	# ingredients = models.ManyToManyField(Ingredient, through='IngredientTested')
 	vote = models.PositiveSmallIntegerField(null=True)
 	description = models.CharField(max_length=200,  null=True)
+	closed = models.BooleanField(default=False)
 	
 # Ingredient tested table
 class IngredientTested(models.Model):
-	test = models.ForeignKey(Test, related_name='ingredientsTested', on_delete=models.CASCADE)
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+	test = models.ForeignKey(Test, related_name='ingredientsTested', on_delete=models.CASCADE)
+	# name = models.CharField(max_length=20,  null=True)
 	amount = models.FloatField(null=True)
+	units = models.CharField(max_length=20,  null=True)
 	brand = models.CharField(max_length=30,  null=True)
 	type = models.CharField(max_length=30,  null=True)
 	
 	# class Meta:
 		# unique_together = ('test', 'ingredient')
 	
-	def __str__(self):
-		return '%d: %s' % (self.id, self.ingredient, self.amount)
+	# def __str__(self):
+		# return '%d: %s' % (self.id, self.ingredient, self.amount)
 	
