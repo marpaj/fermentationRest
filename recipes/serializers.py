@@ -40,15 +40,15 @@ class ProductSerializer(serializers.ModelSerializer):
 		
 class IngredientTestedSerializer(serializers.ModelSerializer):
 	# id = serializers.ReadOnlyField(source='ingredient.id')
-	name = serializers.ReadOnlyField(source='ingredient.name')
-	# ingredient = IngredientSerializer(read_only=True)
+	# name = serializers.ReadOnlyField(source='ingredient.name')
+	ingredient = IngredientSerializer()
 	class Meta:
 		model = IngredientTested
 		# fields = ('id', 'ingredient', 'amount', 'units', 'brand', 'type')
-		fields = ('id', 'ingredient', 'name', 'amount', 'units', 'brand', 'type')
-		extra_kwargs = {
-            'id': {'read_only': False}
-		}
+		fields = ('id', 'ingredient', 'amount', 'units', 'brand', 'type')
+		# extra_kwargs = {
+            # 'id': {'read_only': False}
+		# }
 		
 class RecipeTestSerializer(serializers.ModelSerializer):
 	ingredientsTested = IngredientTestedSerializer(many=True, allow_null=True)
@@ -61,8 +61,8 @@ class RecipeTestSerializer(serializers.ModelSerializer):
 		ingredients_tested = validated_data.pop('ingredientsTested')
 		test = Test.objects.create(recipe=recipe)
 		for ingredient_tested in ingredients_tested:
-			# ingredient = Ingredient.objects.get(id=ingredient_tested.pop('ingredient'))
-			IngredientTested.objects.create(test=test, **ingredient_tested)
+			ingredient = Ingredient.objects.get(id=ingredient_tested.pop('ingredient').get('id'))
+			it = IngredientTested.objects.create(test=test, ingredient=ingredient, **ingredient_tested)			
 		return test
 		
 	def update(self, instance, validated_data):

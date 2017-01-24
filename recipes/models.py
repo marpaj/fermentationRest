@@ -29,7 +29,7 @@ class Recipe(models.Model):
 # Test table
 class Test(models.Model):
 	date = models.DateTimeField(auto_now_add=True)
-	recipe = models.ForeignKey(Recipe, related_name='tests', on_delete=models.CASCADE)
+	recipe = models.ForeignKey(Recipe, related_name='tests', null=False, on_delete=models.CASCADE)
 	# ingredientsTested = models.ManyToManyField(IngredientTested, related_name='ingredientsTested')
 	# ingredients = models.ManyToManyField(Ingredient, through='IngredientTested')
 	vote = models.PositiveSmallIntegerField(null=True)
