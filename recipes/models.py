@@ -11,15 +11,15 @@ class Product(models.Model):
 class Ingredient(models.Model):
 	name = models.CharField(max_length=30)#, unique=True)
 	
-	def __str__(self):
-		return self.name
+	# def __str__(self):
+		# return self.name
 
 # Recipe table
 class Recipe(models.Model):
 	name = models.CharField(max_length=100)
 	description = models.TextField(blank=True, null=True, help_text="This is a quick description of your recipe")
 	directions = models.TextField(blank=True, null=True, help_text="How to make the recipe")
-	product = models.ForeignKey(Product, related_name='recipes', on_delete=models.CASCADE)
+	# product = models.ForeignKey(Product, related_name='recipes', on_delete=models.CASCADE)
 	ingredients = models.ManyToManyField(Ingredient)
 
 # class RecipeIngredient(models.Model):

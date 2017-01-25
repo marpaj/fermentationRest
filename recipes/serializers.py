@@ -2,24 +2,46 @@ from rest_framework import serializers
 from recipes.models import Product, Recipe, Ingredient, Test, IngredientTested
 
 class IngredientSerializer(serializers.ModelSerializer):
+	id = serializers.IntegerField()
 	class Meta:
 		model = Ingredient
 		fields = ('id', 'name')
-		extra_kwargs = {
-            'id': {'read_only': False},
-			'name': {'required': False},
-            'ingredient': {'validators': []},
-        }
+		# extra_kwargs = {
+            # 'id': {'read_only': False},
+			# 'name': {'required': False},
+            # 'ingredient': {'validators': []},
+        # }
 		
 class RecipeSerializer(serializers.ModelSerializer):
-	ingredients = IngredientSerializer(many=True, read_only=True)
+	ingredients = IngredientSerializer(many=True)
+	
 	class Meta:
 		model = Recipe
-		fields = ('id', 'name', 'description', 'directions', 'product','ingredients')
-		extra_kwargs = {
-            'id': {'read_only': False},
-            'recipe': {'validators': []},
-        }
+		fields = ('id', 'name', 'description', 'directions', 'ingredients')
+		
+	def create(self, validated_data):
+		ingredients = validated_data.pop('ingredients')
+		recipe = Recipe.objects.create(**validated_data)
+		for ingredient in ingredients:
+			ingredient = Ingredient.objects.get(id=ingredient.get('id'))
+			recipe.ingredients.add(ingredient)
+		return recipe
+		
+	def update(self, instance, validated_data):
+		ingredients = validated_data.pop('ingredients')
+		instance.name = validated_data.get('name', instance.name)
+		instance.description = validated_data.get('description', instance.description)
+		instance.directions = validated_data.get('directions', instance.directions)
+		instance.save()
+		
+		# Delete all ingredients
+		instance.ingredients.clear()
+		
+		# Add the current ingredients
+		for ingredient in ingredients:
+			ingredient = Ingredient.objects.get(id=ingredient.get('id'))
+			instance.ingredients.add(ingredient)
+		return instance
 
 class RecipeIngredientSerializer(serializers.Serializer):
 	id = serializers.IntegerField()
@@ -80,7 +102,7 @@ class RecipeTestSerializer(serializers.ModelSerializer):
 			it.brand = ingredient_tested.get('brand')
 			it.type = ingredient_tested.get('type')
 			it.save()
-		return test
+		return instance
 
 class TestSerializer(serializers.ModelSerializer):
 	ingredientsTested = IngredientTestedSerializer(many=True, allow_null=True)
@@ -104,35 +126,4 @@ class TestSerializer(serializers.ModelSerializer):
 			it.type = ingredient_tested.get('type')
 			it.save()
 		return instance
-		
-# class IngredientTestedSerializer(serializers.Serializer):
-	# id = serializers.IntegerField(required=False, read_only=True)
-	# ingredient = serializers.IntegerField()
-	# amount = serializers.IntegerField(required=False, read_only=False)
-	# brand = serializers.CharField(required=False, read_only=False, max_length=100)
-	# type = serializers.CharField(required=False, read_only=False, max_length=100)
-		
-	# def create(self, validated_data):
-		# ingredient_id = validated_data.pop('ingredient')
-		# ingredient = Ingredient.objects.get(id=ingredient_id)
-		# IngredientTested.objects.create(ingredient=ingredient, **validated_data)
-		# return test
-		
-# class TestSerializer(serializers.Serializer):
-	# id = serializers.IntegerField(required=False, read_only=True)
-	# date = serializers.DateTimeField(required=False, read_only=True)
-	# vote = serializers.IntegerField(required=False, read_only=False)
-	# description = serializers.CharField(required=False, read_only=False, max_length=100)
-	# ingredientsTested = IngredientTestedSerializer(many=True)
-		
-	# def create(self, validated_data):
-		# recipe = self.context["recipe"]
-		# ingredients_tested = validated_data.pop('ingredientsTested')
-		# test = Test.objects.create(recipe=recipe)
-		# for ingredient_tested in ingredients_tested:
-			# ingredient = Ingredient.objects.get(id=ingredient_tested.pop('ingredient'))
-			# IngredientTested.objects.create(test=test, ingredient=ingredient, **ingredient_tested)
-		# return test
-		
-
 		
