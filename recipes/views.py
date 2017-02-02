@@ -76,33 +76,33 @@ class RecipeTestList(generics.ListCreateAPIView):
 		recipe = Recipe.objects.get(id=self.kwargs['idRecipe'])
 		return {"recipe": recipe}
 
-class TestDetail(APIView):
-	# def get_queryset(self):
-		# return Test.objects.filter(id=self.kwargs['idTest'])
+# class TestDetail(APIView):
+	# # def get_queryset(self):
+		# # return Test.objects.filter(id=self.kwargs['idTest'])
 
-	def get_object(self, pk):
-		try:
-			return Test.objects.get(pk=pk)
-		except Snippet.DoesNotExist:
-			raise Http404
+	# def get_object(self, pk):
+		# try:
+			# return Test.objects.get(pk=pk)
+		# except Test.DoesNotExist:
+			# raise Http404
 
-	def get(self, request, pk, format=None):
-		test = self.get_object(pk)
-		serializer = TestSerializer(test)
-		return Response(serializer.data)
+	# def get(self, request, pk, format=None):
+		# test = self.get_object(pk)
+		# serializer = TestSerializer(test)
+		# return Response(serializer.data)
 
-	def put(self, request, pk, format=None):
-		test = self.get_object(pk)
-		serializer = TestSerializer(test, data=request.data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)	
+	# def put(self, request, pk, format=None):
+		# test = self.get_object(pk)
+		# serializer = TestSerializer(test, data=request.data)
+		# if serializer.is_valid():
+			# serializer.save()
+			# return Response(serializer.data)
+		# return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)	
 		
-# class TestDetail(generics.RetrieveUpdateDestroyAPIView):
-	# serializer_class = RecipeTestSerializer
+class TestDetail(generics.RetrieveUpdateDestroyAPIView):
+	serializer_class = TestSerializer
 	# lookup_field='idTest'
-	# queryset = Test.objects.all()
+	queryset = Test.objects.all()
 	
 	# def get_queryset(self):
 		# return Test.objects.filter(id=self.kwargs['idTest'])

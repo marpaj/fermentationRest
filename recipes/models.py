@@ -32,7 +32,7 @@ class Test(models.Model):
 	recipe = models.ForeignKey(Recipe, related_name='tests', null=False, on_delete=models.CASCADE)
 	# ingredientsTested = models.ManyToManyField(IngredientTested, related_name='ingredientsTested')
 	# ingredients = models.ManyToManyField(Ingredient, through='IngredientTested')
-	vote = models.PositiveSmallIntegerField(null=True)
+	vote = models.PositiveSmallIntegerField(null=False, default=0)
 	description = models.CharField(max_length=200,  null=True)
 	closed = models.BooleanField(default=False)
 	
