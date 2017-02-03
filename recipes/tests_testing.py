@@ -117,3 +117,12 @@ class RecipeTestCase(TestCase):
 		ingredients = IngredientTested.objects.filter(test=test1)
 		self.assertEqual(ingredients.count(), 2)
 	
+	def test_best_test(self):
+		self.setup()
+		client = APIClient()
+		
+		response = client.get('/recipes/1/bestTest/', format='json')
+		
+		# Check that the response is 200 Ok
+		self.assertEqual(response.status_code, 200)
+		

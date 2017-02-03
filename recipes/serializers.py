@@ -78,6 +78,7 @@ class TestSerializer(serializers.ModelSerializer):
 		ingredients_tested = validated_data.pop('ingredientsTested')
 		instance.vote = validated_data.get('vote', instance.vote)
 		instance.description = validated_data.get('description', instance.description)
+		instance.closed = validated_data.get('closed', instance.closed)
 		instance.save()
 		for ingredient_tested in ingredients_tested:
 			# ingredient_tested = IngredientTested.objects.get(id=ingredient_tested.get('id'))

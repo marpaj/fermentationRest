@@ -11,8 +11,9 @@ urlpatterns = [
 	# url(r'^recipes/(?P<idRecipe>[0-9]+)/tests/(?P<idTest>[0-9]+)/$', views.TestDetail.as_view()),
 	
 	url(r'^recipes/(?P<idRecipe>[0-9]+)/bestTest/$', views.BestTest.as_view()),	
+	url(r'^recipes/(?P<idRecipe>[0-9]+)/activeTest/$', views.ActiveTest.as_view()),	
 	
-	# url(r'^ingredients/$', views.IngredientList.as_view()),
+	url(r'^ingredients/$', views.IngredientList.as_view()),
     # url(r'^ingredients/(?P<pk>[0-9]+)/$', views.IngredientDetail.as_view()),
 	
 	# url(r'^tests/$', views.TestList.as_view()),
