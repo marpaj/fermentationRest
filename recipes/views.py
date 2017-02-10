@@ -1,5 +1,5 @@
-from recipes.models import Product, Ingredient, Recipe, Test, IngredientTested
-from recipes.serializers import IngredientSerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer
+from recipes.models import Product, Ingredient, Direction, Category, Recipe, Test, IngredientTested, DirectionTested, CategoryTested
+from recipes.serializers import IngredientSerializer, DirectionSerializer, CategorySerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -64,6 +64,12 @@ class IngredientList(generics.ListCreateAPIView):
 class IngredientDetail(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Ingredient.objects.all()
 	serializer_class = IngredientSerializer
+	
+class RecipeDirectionList(generics.ListAPIView):
+	serializer_class = DirectionSerializer
+	
+	def get_queryset(self):
+		return Direction.objects.filter(recipe=self.kwargs['idRecipe'])
 	
 class RecipeTestList(generics.ListCreateAPIView):
 	serializer_class = RecipeTestSerializer
