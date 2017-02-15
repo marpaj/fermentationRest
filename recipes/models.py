@@ -10,10 +10,6 @@ class Product(models.Model):
 # Ingredient table
 class Ingredient(models.Model):
 	name = models.CharField(max_length=50)
-
-# Category of quality for the recipe
-class Category(models.Model):
-	name = models.CharField(max_length=50)	
 	
 # Recipe table
 class Recipe(models.Model):
@@ -21,9 +17,8 @@ class Recipe(models.Model):
 	description = models.TextField(blank=True, null=True, help_text="This is a quick description of your recipe")
 	# directions = models.TextField(blank=True, null=True, help_text="How to make the recipe")
 	ingredients = models.ManyToManyField(Ingredient)
-	categories = models.ManyToManyField(Category)
 	
-# Recipe's Instructions
+# Recipe's Directions
 class Direction(models.Model):
 	recipe = models.ForeignKey(Recipe, related_name='directions', on_delete=models.CASCADE)
 	title = models.CharField(max_length=200, blank=True,)
@@ -45,23 +40,30 @@ class Test(models.Model):
 class IngredientTested(models.Model):
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
 	test = models.ForeignKey(Test, related_name='ingredientsTested', on_delete=models.CASCADE)
-	# name = models.CharField(max_length=20,  null=True)
 	amount = models.FloatField(null=True)
 	units = models.CharField(max_length=30, null=True)
 	brand = models.CharField(max_length=60, null=True)
 	type = models.CharField(max_length=60, null=True)
+
+# Testing parameters table
+class Parameter(models.Model):
+	name = models.CharField(max_length=100, null=True)
 	
-# Instruction tested table
+# Direction tested table
 class DirectionTested(models.Model):
 	direction = models.ForeignKey(Direction, on_delete=models.CASCADE)
 	test = models.ForeignKey(Test, related_name='directionsTested', on_delete=models.CASCADE)
-	time = models.CharField(max_length=60, null=True)
-	place = models.CharField(max_length=80, null=True)
+	done = models.BooleanField(default=False)
+	
+class ParameterTested(models.Model):
+	parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
+	directionTested = models.ForeignKey(DirectionTested, related_name='parametersTested', on_delete=models.CASCADE)
+	value = models.CharField(max_length=100, null=True)
 
-# Category feedback of the test
-class CategoryTested(models.Model):
-	category = models.ForeignKey(Category, on_delete=models.CASCADE)
-	test = models.ForeignKey(Test, related_name='categoriesTested', on_delete=models.CASCADE)
-	vote = models.PositiveSmallIntegerField(null=False, default=0)
-	description = models.CharField(max_length=200, null=True)
+# # Category feedback of the test
+# class CategoryTested(models.Model):
+	# category = models.ForeignKey(Category, on_delete=models.CASCADE)
+	# test = models.ForeignKey(Test, related_name='categoriesTested', on_delete=models.CASCADE)
+	# vote = models.PositiveSmallIntegerField(null=False, default=0)
+	# description = models.CharField(max_length=200, null=True)
 	

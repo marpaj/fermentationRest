@@ -1,5 +1,5 @@
-from recipes.models import Product, Ingredient, Direction, Category, Recipe, Test, IngredientTested, DirectionTested, CategoryTested
-from recipes.serializers import IngredientSerializer, DirectionSerializer, CategorySerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer
+from recipes.models import Ingredient, Direction, Recipe, Test, IngredientTested, DirectionTested, Parameter
+from recipes.serializers import IngredientSerializer, DirectionSerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer, ParameterSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -85,6 +85,10 @@ class RecipeTestList(generics.ListCreateAPIView):
 class TestDetail(generics.RetrieveUpdateDestroyAPIView):
 	serializer_class = TestSerializer
 	queryset = Test.objects.all()
+	
+class ParameterList(generics.ListCreateAPIView):
+	queryset = Parameter.objects.all()
+	serializer_class = ParameterSerializer
 		
 class BestTest(APIView):
 	"""

@@ -1,13 +1,10 @@
 from django.test import TestCase
-from recipes.models import Product, Recipe, Ingredient, Test, IngredientTested, Direction, DirectionTested
+from recipes.models import Recipe, Ingredient, Direction, Test, IngredientTested, DirectionTested, Parameter, ParameterTested
 from rest_framework.test import APIClient
 
-class RecipeTestCase(TestCase):
+class TestingTestCase(TestCase):
 	
 	def setup(self):
-		# Product id=1
-		p1 = Product.objects.create(id=1, name='Product1')
-		
 		# Ingredients
 		i1 = Ingredient.objects.create(id=1, name='Ingr1')
 		i2 = Ingredient.objects.create(id=2, name='Ingr2')
@@ -25,12 +22,20 @@ class RecipeTestCase(TestCase):
 		d21 = Direction.objects.create(id=3, recipe=r2, title='Direction 1', description='descrip 1', order=1)
 		d22 = Direction.objects.create(id=4, recipe=r2, title='Direction 2', description='descrip 2', order=2)
 		
+		# Parameters
+		p1 = Parameter.objects.create(id=1, name='Time');
+		p2 = Parameter.objects.create(id=2, name='Temperature');
+		p3 = Parameter.objects.create(id=3, name='Place');
+		
 		# Tests for recipe with id=1
 		t1r1 = Test.objects.create(id=1, recipe=r1, vote=5)
 		IngredientTested.objects.create(id=1, test=t1r1, ingredient=i1, amount=100, units='grms')
 		IngredientTested.objects.create(id=2, test=t1r1, ingredient=i2, amount=200, units='grms')
-		DirectionTested.objects.create(id=1, test=t1r1, direction=d11, time='5 days', place='owen')
-		DirectionTested.objects.create(id=2, test=t1r1, direction=d12, time='0.5 hours', place='kitchen')
+		t1dt1 = DirectionTested.objects.create(id=1, test=t1r1, direction=d11)
+		ParameterTested.objects.create(id=1, directionTested=t1dt1, parameter=p1, value='5 days')
+		ParameterTested.objects.create(id=2, directionTested=t1dt1, parameter=p3, value='owen')
+		t1dt2 = DirectionTested.objects.create(id=2, test=t1r1, direction=d12)
+		ParameterTested.objects.create(id=3, directionTested=t1dt2, parameter=p1, value='0.5 horus')
 		
 		t2r1 = Test.objects.create(id=2, recipe=r1, vote=7)
 		IngredientTested.objects.create(id=3, test=t2r1, ingredient=i1, amount=150, units='grms')
@@ -72,8 +77,8 @@ class RecipeTestCase(TestCase):
 		client = APIClient()
 		
 		data = { 'ingredientsTested':[ {'ingredient':{'id':1, 'name':'Ingr1'}, 'amounts':111, 'units':'grms'} ], 
-				'directionsTested': [ {'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 'time':'1 days', 'place':'garage'}, 
-						{'direction':{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2}, 'time':'12 hours', 'place':'garden'} ] }
+				'directionsTested': [ {'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'1 days'}] }, 
+						{'direction':{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2}, 'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'12 hours'}] } ] }
 		
 		response = client.post('/recipes/1/tests/', data, format='json')
 		
@@ -119,7 +124,9 @@ class RecipeTestCase(TestCase):
 		client = APIClient()
 			
 		data = { 'ingredientsTested':[ {'id':2, 'ingredient':{'id':2, 'name':'Ingr2'}, 'amount':444, 'units':'grms'} ],
-				'directionsTested':[ {'id':1, 'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 'time':'444 days', 'place':'toilete'} ] }
+				'directionsTested':[ {'id':1, 'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
+						'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'444 days'}
+								, {'parameter':{'id':3, 'name':'Place'}, 'value':'toilet'}] } ] }
 		
 		response = client.put('/tests/1/', data, format='json')
 		

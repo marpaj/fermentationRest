@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from recipes.models import Recipe, Category, Direction, Ingredient, Test, IngredientTested, DirectionTested, CategoryTested
+from recipes.models import Recipe, Direction, Ingredient, Test, IngredientTested, DirectionTested, Parameter, ParameterTested
 
 class IngredientSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -12,11 +12,11 @@ class IngredientSerializer(serializers.ModelSerializer):
             },
         }
 		
-class CategorySerializer(serializers.ModelSerializer):
-	id = serializers.IntegerField()
-	class Meta:
-		model = Category
-		fields = ('id', 'name')
+# class CategorySerializer(serializers.ModelSerializer):
+	# id = serializers.IntegerField()
+	# class Meta:
+		# model = Category
+		# fields = ('id', 'name')
 		
 class DirectionSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -47,12 +47,31 @@ class IngredientTestedSerializer(serializers.ModelSerializer):
 		model = IngredientTested
 		fields = ('id', 'ingredient', 'amount', 'units', 'brand', 'type')
 		
+class ParameterSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Parameter
+		fields = ('id', 'name')
+		extra_kwargs = {
+            "id": {
+                "read_only": False,
+                "required": False,
+            },
+        }
+		
+class ParameterTestedSerializer(serializers.ModelSerializer):
+	id = serializers.IntegerField(required=False)
+	parameter = ParameterSerializer()
+	class Meta:
+		model = ParameterTested
+		fields = ('id', 'parameter', 'value')
+		
 class DirectionTestedSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 	direction = DirectionSerializer()
+	parametersTested = ParameterTestedSerializer(many=True, allow_null=True)
 	class Meta:
 		model = DirectionTested
-		fields = ('id', 'direction', 'time', 'place')
+		fields = ('id', 'direction', 'done', 'parametersTested')
 		
 class RecipeTestSerializer(serializers.ModelSerializer):
 	ingredientsTested = IngredientTestedSerializer(many=True, allow_null=True)
@@ -73,7 +92,12 @@ class RecipeTestSerializer(serializers.ModelSerializer):
 		
 		for direction_tested in directions_tested:
 			direction = Direction.objects.get(id=direction_tested.pop('direction').get('id'))
-			DirectionTested.objects.create(test=test, direction=direction, **direction_tested)
+			parameters_tested = direction_tested.pop('parametersTested')
+			newDT = DirectionTested.objects.create(test=test, direction=direction, **direction_tested)
+			
+			for parameter_tested in parameters_tested:
+				parameter = Parameter.objects.get(id=parameter_tested.pop('parameter').get('id'))
+				ParameterTested.objects.create(parameter=parameter, directionTested=newDT, **parameter_tested)
 		
 		return test
 
@@ -103,18 +127,23 @@ class TestSerializer(serializers.ModelSerializer):
 		DirectionTested.objects.filter(test=instance).delete()
 		for direction_tested in directions_tested:
 			direction = Direction.objects.get(id=direction_tested.pop('direction').get('id'))
-			DirectionTested.objects.create(test=instance, direction=direction, **direction_tested)
+			parameters_tested = direction_tested.pop('parametersTested')
+			newDT = DirectionTested.objects.create(test=instance, direction=direction, **direction_tested)
+			
+			for parameter_tested in parameters_tested:
+				parameter = Parameter.objects.get(id=parameter_tested.pop('parameter').get('id'))
+				ParameterTested.objects.create(parameter=parameter, directionTested=newDT, **parameter_tested)
 		
 		return instance
 
 class RecipeSerializer(serializers.ModelSerializer):
 	ingredients = IngredientSerializer(many=True)
 	directions = DirectionSerializer(many=True)
-	tests = TestSerializer(many=True, read_only=True)
+	# tests = TestSerializer(many=True, read_only=True)
 	
 	class Meta:
 		model = Recipe
-		fields = ('id', 'name', 'description', 'directions', 'ingredients', 'tests')
+		fields = ('id', 'name', 'description', 'directions', 'ingredients') #, 'tests')
 		
 	def create(self, validated_data):
 		ingredients = validated_data.pop('ingredients')
