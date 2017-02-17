@@ -1,5 +1,5 @@
 from recipes.models import Ingredient, Direction, Recipe, Test, IngredientTested, DirectionTested, Parameter
-from recipes.serializers import IngredientSerializer, DirectionSerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer, ParameterSerializer
+from recipes.serializers import IngredientSerializer, DirectionSerializer, RecipeSerializer, RecipeIngredientSerializer, RecipeTestSerializer, TestSerializer, IngredientTestedSerializer, ParameterSerializer, DirectionTestedSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -117,4 +117,17 @@ class ActiveTest(APIView):
 				return Response(status=status.HTTP_204_NO_CONTENT)
 		except Recipe.DoesNotExist:
 			raise Http404
-	
+
+class CurrentDirection(APIView):
+	"""
+	Class-based view for return the order of the current direction
+	"""
+	def get(self, request, idTest, format='json'):
+		try:
+			test = Test.objects.get(id=idTest)
+			directionsTested = DirectionTested.objects.filter(test=test, done=False)
+			current = directionsTested.order_by('id').first()
+			serializer = DirectionTestedSerializer(current)
+			return Response(data=serializer.data)
+		except Recipe.DoesNotExist:
+			raise Http404

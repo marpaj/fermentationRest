@@ -19,6 +19,7 @@ urlpatterns = [
 	
 	# url(r'^tests/$', views.TestList.as_view()),
     url(r'^tests/(?P<pk>[0-9]+)/$', views.TestDetail.as_view()),
+	url(r'^tests/(?P<idTest>[0-9]+)/currentDirection/$', views.CurrentDirection.as_view()),
 	
 	url(r'^parameters/$', views.ParameterList.as_view()),
 ]
