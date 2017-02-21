@@ -17,15 +17,15 @@ class TestingTestCase(TestCase):
 		d11 = Direction.objects.create(id=1, recipe=r1, title='Direction 1', description='descrip 1', order=1)
 		d12 = Direction.objects.create(id=2, recipe=r1, title='Direction 2', description='descrip 2', order=2)
 		
-		# Recipe id=2 with one ingredient stored
+		# Recipe id=2 with no ingredients
 		r2 = Recipe.objects.create(id=2, name='Recipe 2', ingredients=[])
 		d21 = Direction.objects.create(id=3, recipe=r2, title='Direction 1', description='descrip 1', order=1)
 		d22 = Direction.objects.create(id=4, recipe=r2, title='Direction 2', description='descrip 2', order=2)
 		
 		# Parameters
-		p1 = Parameter.objects.create(id=1, name='Time');
-		p2 = Parameter.objects.create(id=2, name='Temperature');
-		p3 = Parameter.objects.create(id=3, name='Place');
+		p1 = Parameter.objects.create(id=1, name='Time')
+		p2 = Parameter.objects.create(id=2, name='Temperature')
+		p3 = Parameter.objects.create(id=3, name='Place')
 		
 		# Tests for recipe with id=1
 		t1r1 = Test.objects.create(id=1, recipe=r1, vote=5)
@@ -76,9 +76,15 @@ class TestingTestCase(TestCase):
 		self.setup()
 		client = APIClient()
 		
-		data = { 'ingredientsTested':[ {'ingredient':{'id':1, 'name':'Ingr1'}, 'amounts':111, 'units':'grms'} ], 
-				'directionsTested': [ {'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'1 days'}] }, 
-						{'direction':{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2}, 'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'12 hours'}] } ] }
+		data = { 
+			'ingredientsTested':[ {'ingredient':{'id':1, 'name':'Ingr1'}, 'amounts':111, 'units':'grms'} ], 
+			'directionsTested': [ 
+				{'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
+					'parametersTested':[ {'parameter':{'id':1, 'name':'Time'}, 'value':'1 days'} ] }, 
+				{'direction':{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2}, 
+					'parametersTested':[ {'parameter':{'id':1, 'name':'Time'}, 'value':'12 hours'} ] } 
+			] 
+		}
 		
 		response = client.post('/recipes/1/tests/', data, format='json')
 		
@@ -123,10 +129,15 @@ class TestingTestCase(TestCase):
 		self.setup()
 		client = APIClient()
 			
-		data = { 'ingredientsTested':[ {'id':2, 'ingredient':{'id':2, 'name':'Ingr2'}, 'amount':444, 'units':'grms'} ],
-				'directionsTested':[ {'id':1, 'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
-						'parametersTested':[{'parameter':{'id':1, 'name':'Time'}, 'value':'444 days'}
-								, {'parameter':{'id':3, 'name':'Place'}, 'value':'toilet'}] } ] }
+		data = { 
+			'ingredientsTested':[ {'id':2, 'ingredient':{'id':2, 'name':'Ingr2'}, 'amount':444, 'units':'grms'} ],
+			'directionsTested':[ 
+				{ 'id':1, 'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
+					'parametersTested':[
+						{'parameter':{'id':1, 'name':'Time'}, 'value':'444 days'}, 
+						{'parameter':{'id':3, 'name':'Place'}, 'value':'toilet'}] 
+				} ] 
+		}
 		
 		response = client.put('/tests/1/', data, format='json')
 		

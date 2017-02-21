@@ -127,7 +127,7 @@ class RecipeTestCase(TestCase):
 		# Check that number of directions of recipe is 1
 		self.assertEqual(Recipe.objects.get(id=1).directions.count(), 2)
 		
-	def test_update_recipe_name_ingredients_directions(self):
+	def test_update_recipe_with_less_directions(self):
 		self.setup()
 		client = APIClient()
 		name = 'New name of recipe 1'
@@ -147,8 +147,41 @@ class RecipeTestCase(TestCase):
 		# Check that number of ingredients of recipe is 1
 		self.assertEqual(Recipe.objects.get(id=1).ingredients.count(), 1)
 		
-		# Check that number of directions of recipe is 1
-		self.assertEqual(Recipe.objects.get(id=1).directions.count(), 1)
+		# Check that number of directions of recipe is 2
+		self.assertEqual(Recipe.objects.get(id=1).directions.count(), 2)
+
+		directions = Recipe.objects.get(id=1).directions
+		self.assertEqual(directions.filter(deleted=False).count(), 1)
+
+	def test_update_recipe_with_more_directions(self):
+		self.setup()
+		client = APIClient()
+		name = 'New name of recipe 1'
+		
+		data = { 'id':1, 'name':name, 'description':'new description', 
+			'ingredients':[ {'id':1, 'name':'Ingr1'}] , 
+			'directions':[ 
+					{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
+					{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2},
+					{'title':'Direction 3', 'description':'descrip 3', 'order':3},
+					{'title':'Direction 4', 'description':'descrip 4', 'order':4}
+			] 
+		}
+						
+		response = client.put('/recipes/1/', data, format='json')
+		
+		# Check that the response is 200 OK
+		self.assertEqual(response.status_code, 200)
+		
+		# Check that name is the new one
+		self.assertEqual(Recipe.objects.get(id=1).name, name)
+		
+		# Check that number of ingredients of recipe is 1
+		self.assertEqual(Recipe.objects.get(id=1).ingredients.count(), 1)
+		
+		# Check that number of directions of recipe is 4
+		directions = Recipe.objects.get(id=1).directions
+		self.assertEqual(directions.filter(deleted=False).count(), 4)
 		
 	def test_update_for_delete_ingredients_directions(self):
 		self.setup()
@@ -163,8 +196,10 @@ class RecipeTestCase(TestCase):
 		# Check that number of ingredients of recipe is 1
 		self.assertEqual(Recipe.objects.get(id=2).ingredients.count(), 0)
 		
-		# Check that number of directions of recipe is 1
-		self.assertEqual(Recipe.objects.get(id=2).directions.count(), 0)
+		# Check that number of directions of recipe is 2 but with deleted field to False
+		directions = Recipe.objects.get(id=2).directions
+		self.assertEqual(directions.count(), 2)
+		self.assertEqual(directions.filter(deleted=False).count(), 0)
 		
 	def test_delete_recipe(self):
 		self.setup()

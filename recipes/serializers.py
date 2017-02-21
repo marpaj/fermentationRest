@@ -21,13 +21,19 @@ class IngredientSerializer(serializers.ModelSerializer):
 class DirectionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Direction
-		fields = ('id', 'title', 'description', 'order')
+		fields = ('id', 'description', 'order', 'deleted')
 		extra_kwargs = {
             "id": {
                 "read_only": False,
                 "required": False,
             },
         }
+
+# class DirectionSerializer(serializers.Serializer):
+# 	id = serializers.IntegerField()
+# 	description = serializers.CharField(required=False, read_only=True, max_length=400)
+# 	order = serializers.IntegerField()
+# 	deleted = serializers.BooleanField()
 
 class RecipeIngredientSerializer(serializers.Serializer):
 	id = serializers.IntegerField()
@@ -133,17 +139,26 @@ class TestSerializer(serializers.ModelSerializer):
 			for parameter_tested in parameters_tested:
 				parameter = Parameter.objects.get(id=parameter_tested.pop('parameter').get('id'))
 				ParameterTested.objects.create(parameter=parameter, directionTested=newDT, **parameter_tested)
+
+		# if not directions_tested:
+		# 	DirectionTested.objects.filter(test=instance).delete()
 		
 		return instance
 
 class RecipeSerializer(serializers.ModelSerializer):
 	ingredients = IngredientSerializer(many=True)
 	directions = DirectionSerializer(many=True)
-	# tests = TestSerializer(many=True, read_only=True)
+
+	# directions = serializers.SerializerMethodField('get_directionsWE')
+
+	# def get_directionsWE(self, recipe):
+	# 	qs = Direction.objects.filter(deleted=False, recipe=recipe)
+	# 	serializer = DirectionSerializer(instance=qs, many=True)
+	# 	return serializer.data
 	
 	class Meta:
 		model = Recipe
-		fields = ('id', 'name', 'description', 'directions', 'ingredients') #, 'tests')
+		fields = ('id', 'name', 'description', 'directions', 'ingredients')
 		
 	def create(self, validated_data):
 		ingredients = validated_data.pop('ingredients')
@@ -163,7 +178,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 		
 	def update(self, instance, validated_data):
 		ingredients = validated_data.pop('ingredients')
-		directions = validated_data.pop('directions')
+		directions_data = validated_data.pop('directions')
 		instance.name = validated_data.get('name', instance.name)
 		instance.description = validated_data.get('description', instance.description)
 		instance.save()
@@ -174,11 +189,32 @@ class RecipeSerializer(serializers.ModelSerializer):
 			ingredient = Ingredient.objects.get(id=ingredient.get('id'))
 			instance.ingredients.add(ingredient)
 			
-		# Clear and add all current direcitons
-		Direction.objects.filter(recipe=instance).delete()
-		for direction in directions:
-			Direction.objects.create(recipe=instance, **direction)
-			
+		# Save all direction's id of recipe for delete  
+		idArray = []
+		for direction_data in directions_data:
+			id = direction_data.get('id')
+			if id:
+				direction = Direction.objects.get(id=id)
+				direction.description = direction_data.get('description')
+				direction.order = direction_data.get('order')
+				# direction.deleted = direction_data.get('deleted')
+				direction.save()
+
+				idArray.append(id)
+			else:
+				direction = Direction.objects.create(recipe=instance, **direction_data)
+				idArray.append(direction.id)
+		
+		directions = Direction.objects.filter(recipe=instance)
+		for id in idArray:
+			directions = directions.exclude(id=id)
+
+		if directions.count() > 0:
+			for direction in directions:
+				direction.deleted = True
+				direction.save()
+			# directions.delete()
+
 		return instance
 
 # class ProductSerializer(serializers.ModelSerializer):

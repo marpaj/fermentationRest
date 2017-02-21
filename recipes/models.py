@@ -21,10 +21,10 @@ class Recipe(models.Model):
 # Recipe's Directions
 class Direction(models.Model):
 	recipe = models.ForeignKey(Recipe, related_name='directions', on_delete=models.CASCADE)
-	title = models.CharField(max_length=200, blank=True,)
+	title = models.CharField(max_length=200, blank=True)
 	description = models.CharField(max_length=400, blank=True, null=True)
-	# time = models.CharField(max_length=50, null=True)
 	order = models.PositiveSmallIntegerField()
+	deleted = models.BooleanField(default=False)
 	
 # Test table
 class Test(models.Model):
@@ -40,7 +40,7 @@ class Test(models.Model):
 class IngredientTested(models.Model):
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
 	test = models.ForeignKey(Test, related_name='ingredientsTested', on_delete=models.CASCADE)
-	amount = models.FloatField(null=True)
+	amount = models.FloatField(null=True, default=0)
 	units = models.CharField(max_length=30, null=True)
 	brand = models.CharField(max_length=60, null=True)
 	type = models.CharField(max_length=60, null=True)
