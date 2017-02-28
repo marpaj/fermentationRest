@@ -48,8 +48,8 @@ class TestingTestCase(TestCase):
 		
 		# Tests 2 for recipe with id=1
 		t2r1 = Test.objects.create(id=2, recipe=r1, vote=7)
-		IngredientTested.objects.create(id=3, test=t2r1, ingredient=i1, amount=150, units='grms')
-		IngredientTested.objects.create(id=4, test=t2r1, ingredient=i2, amount=150, units='grms')
+		IngredientTested.objects.create(id=3, test=t2r1, ingredient=i1)
+		IngredientTested.objects.create(id=4, test=t2r1, ingredient=i2)
 	
 	def test_get_recipe_tests(self):
 		self.setup()

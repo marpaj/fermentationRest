@@ -40,10 +40,6 @@ class Test(models.Model):
 class IngredientTested(models.Model):
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
 	test = models.ForeignKey(Test, related_name='ingredientsTested', on_delete=models.CASCADE)
-	amount = models.FloatField(null=True, default=0)
-	units = models.CharField(max_length=30, null=True)
-	brand = models.CharField(max_length=60, null=True)
-	type = models.CharField(max_length=60, null=True)
 
 # Direction tested table
 class DirectionTested(models.Model):
