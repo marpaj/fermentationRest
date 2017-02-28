@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from recipes.models import Recipe, Direction, Ingredient, Test, IngredientTested, DirectionTested, Parameter, ParameterTested
+from recipes.models import Recipe, Direction, Ingredient, Test, IngredientTested, DirectionTested, Parameter, ParameterDirection, ParameterIngredient
 
 class IngredientSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -46,13 +46,6 @@ class RecipeIngredientSerializer(serializers.Serializer):
 		recipe.ingredients.add(ingredient)
 		return ingredient
 		
-class IngredientTestedSerializer(serializers.ModelSerializer):
-	id = serializers.IntegerField(required=False)
-	ingredient = IngredientSerializer()
-	class Meta:
-		model = IngredientTested
-		fields = ('id', 'ingredient', 'amount', 'units', 'brand', 'type')
-		
 class ParameterSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Parameter
@@ -63,21 +56,36 @@ class ParameterSerializer(serializers.ModelSerializer):
                 "required": False,
             },
         }
-		
-class ParameterTestedSerializer(serializers.ModelSerializer):
+
+class ParameterIngredientSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 	parameter = ParameterSerializer()
 	class Meta:
-		model = ParameterTested
+		model = ParameterIngredient
+		fields = ('id', 'parameter', 'value')
+
+class IngredientTestedSerializer(serializers.ModelSerializer):
+	id = serializers.IntegerField(required=False)
+	ingredient = IngredientSerializer()
+	parametersIngredient = ParameterIngredientSerializer(many=True, allow_null=True)
+	class Meta:
+		model = IngredientTested
+		fields = ('id', 'ingredient', 'parametersIngredient')
+
+class ParameterDirectionSerializer(serializers.ModelSerializer):
+	id = serializers.IntegerField(required=False)
+	parameter = ParameterSerializer()
+	class Meta:
+		model = ParameterDirection
 		fields = ('id', 'parameter', 'value')
 		
 class DirectionTestedSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 	direction = DirectionSerializer()
-	parametersTested = ParameterTestedSerializer(many=True, allow_null=True)
+	parametersDirection = ParameterDirectionSerializer(many=True, allow_null=True)
 	class Meta:
 		model = DirectionTested
-		fields = ('id', 'direction', 'done', 'parametersTested')
+		fields = ('id', 'direction', 'done', 'parametersDirection')
 		
 class RecipeTestSerializer(serializers.ModelSerializer):
 	ingredientsTested = IngredientTestedSerializer(many=True, allow_null=True)
@@ -94,16 +102,23 @@ class RecipeTestSerializer(serializers.ModelSerializer):
 		
 		for ingredient_tested in ingredients_tested:
 			ingredient = Ingredient.objects.get(id=ingredient_tested.pop('ingredient').get('id'))
-			IngredientTested.objects.create(test=test, ingredient=ingredient, **ingredient_tested)
+			parameters_ingredient = ingredient_tested.pop('parametersIngredient')
+			newIT = IngredientTested.objects.create(test=test, ingredient=ingredient, **ingredient_tested)
+
+			for parameter_ingredient in parameters_ingredient:
+				parameter = Parameter.objects.get(id=parameter_ingredient.pop('parameter').get('id'))
+				ParameterIngredient.objects.create(parameter=parameter, ingredientTested=newIT, **parameter_ingredient)
+
+			# IngredientTested.objects.create(test=test, ingredient=ingredient, **ingredient_tested)
 		
 		for direction_tested in directions_tested:
 			direction = Direction.objects.get(id=direction_tested.pop('direction').get('id'))
-			parameters_tested = direction_tested.pop('parametersTested')
+			parameters_direction = direction_tested.pop('parametersDirection')
 			newDT = DirectionTested.objects.create(test=test, direction=direction, **direction_tested)
 			
-			for parameter_tested in parameters_tested:
-				parameter = Parameter.objects.get(id=parameter_tested.pop('parameter').get('id'))
-				ParameterTested.objects.create(parameter=parameter, directionTested=newDT, **parameter_tested)
+			for parameter_direction in parameters_direction:
+				parameter = Parameter.objects.get(id=parameter_direction.pop('parameter').get('id'))
+				ParameterDirection.objects.create(parameter=parameter, directionTested=newDT, **parameter_direction)
 		
 		return test
 
@@ -128,17 +143,24 @@ class TestSerializer(serializers.ModelSerializer):
 		IngredientTested.objects.filter(test=instance).delete()
 		for ingredient_tested in ingredients_tested:
 			ingredient = Ingredient.objects.get(id=ingredient_tested.pop('ingredient').get('id'))
-			IngredientTested.objects.create(test=instance, ingredient=ingredient, **ingredient_tested)
+			parameters_ingredient = ingredient_tested.pop('parametersIngredient')
+			newIT = IngredientTested.objects.create(test=instance, ingredient=ingredient, **ingredient_tested)
+			
+			for parameter_ingredient in parameters_ingredient:
+				parameter = Parameter.objects.get(id=parameter_ingredient.pop('parameter').get('id'))
+				ParameterIngredient.objects.create(parameter=parameter, ingredientTested=newIT, **parameter_ingredient)
+
+			# IngredientTested.objects.create(test=instance, ingredient=ingredient, **ingredient_tested)
 		
 		DirectionTested.objects.filter(test=instance).delete()
 		for direction_tested in directions_tested:
 			direction = Direction.objects.get(id=direction_tested.pop('direction').get('id'))
-			parameters_tested = direction_tested.pop('parametersTested')
+			parameters_direction = direction_tested.pop('parametersDirection')
 			newDT = DirectionTested.objects.create(test=instance, direction=direction, **direction_tested)
 			
-			for parameter_tested in parameters_tested:
-				parameter = Parameter.objects.get(id=parameter_tested.pop('parameter').get('id'))
-				ParameterTested.objects.create(parameter=parameter, directionTested=newDT, **parameter_tested)
+			for parameter_direction in parameters_direction:
+				parameter = Parameter.objects.get(id=parameter_direction.pop('parameter').get('id'))
+				ParameterDirection.objects.create(parameter=parameter, directionTested=newDT, **parameter_direction)
 
 		# if not directions_tested:
 		# 	DirectionTested.objects.filter(test=instance).delete()

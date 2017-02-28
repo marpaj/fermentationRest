@@ -1,5 +1,5 @@
 from django.test import TestCase
-from recipes.models import Recipe, Ingredient, Direction, Test, IngredientTested, DirectionTested, Parameter, ParameterTested
+from recipes.models import Recipe, Ingredient, Direction, Test, IngredientTested, DirectionTested, Parameter, ParameterDirection, ParameterIngredient
 from rest_framework.test import APIClient
 
 class TestingTestCase(TestCase):
@@ -26,17 +26,27 @@ class TestingTestCase(TestCase):
 		p1 = Parameter.objects.create(id=1, name='Time')
 		p2 = Parameter.objects.create(id=2, name='Temperature')
 		p3 = Parameter.objects.create(id=3, name='Place')
+
+		p4 = Parameter.objects.create(id=4, name='Amount')
+		p5 = Parameter.objects.create(id=5, name='Type')
+		p6 = Parameter.objects.create(id=6, name='Brand')
 		
-		# Tests for recipe with id=1
+		# Tests 1 for recipe with id=1
 		t1r1 = Test.objects.create(id=1, recipe=r1, vote=5)
-		IngredientTested.objects.create(id=1, test=t1r1, ingredient=i1, amount=100, units='grms')
-		IngredientTested.objects.create(id=2, test=t1r1, ingredient=i2, amount=200, units='grms')
-		t1dt1 = DirectionTested.objects.create(id=1, test=t1r1, direction=d11)
-		ParameterTested.objects.create(id=1, directionTested=t1dt1, parameter=p1, value='5 days')
-		ParameterTested.objects.create(id=2, directionTested=t1dt1, parameter=p3, value='owen')
-		t1dt2 = DirectionTested.objects.create(id=2, test=t1r1, direction=d12)
-		ParameterTested.objects.create(id=3, directionTested=t1dt2, parameter=p1, value='0.5 horus')
 		
+		t1it1 = IngredientTested.objects.create(id=1, test=t1r1, ingredient=i1)
+		ParameterIngredient.objects.create(id=1, ingredientTested=t1it1, parameter=p4, value='70 grms')
+		ParameterIngredient.objects.create(id=2, ingredientTested=t1it1, parameter=p6, value='Biog')
+		t1it2 = IngredientTested.objects.create(id=2, test=t1r1, ingredient=i2)
+		ParameterIngredient.objects.create(id=4, ingredientTested=t1it2, parameter=p5, value='Wholemeal')
+
+		t1dt1 = DirectionTested.objects.create(id=1, test=t1r1, direction=d11)
+		ParameterDirection.objects.create(id=1, directionTested=t1dt1, parameter=p1, value='5 days')
+		ParameterDirection.objects.create(id=2, directionTested=t1dt1, parameter=p3, value='owen')
+		t1dt2 = DirectionTested.objects.create(id=2, test=t1r1, direction=d12)
+		ParameterDirection.objects.create(id=3, directionTested=t1dt2, parameter=p1, value='0.5 horus')
+		
+		# Tests 2 for recipe with id=1
 		t2r1 = Test.objects.create(id=2, recipe=r1, vote=7)
 		IngredientTested.objects.create(id=3, test=t2r1, ingredient=i1, amount=150, units='grms')
 		IngredientTested.objects.create(id=4, test=t2r1, ingredient=i2, amount=150, units='grms')
@@ -77,12 +87,22 @@ class TestingTestCase(TestCase):
 		client = APIClient()
 		
 		data = { 
-			'ingredientsTested':[ {'ingredient':{'id':1, 'name':'Ingr1'}, 'amounts':111, 'units':'grms'} ], 
+			'ingredientsTested':[ 
+				{'ingredient':{'id':1, 'name':'Ingr1'}, 
+					'parametersIngredient':[ 
+						{'parameter':{'id':4, 'name':'Amount'}, 'value':'1 kg'}, 
+						{'parameter':{'id':5, 'name':'Type'}, 'value':'The old one'} ] }, 
+				{'ingredient':{'id':2, 'name':'Ingr2'}, 
+					'parametersIngredient':[ 
+						{'parameter':{'id':4, 'name':'Amount'}, 'value':'2 ltrs'} ] }
+			], 
 			'directionsTested': [ 
 				{'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
-					'parametersTested':[ {'parameter':{'id':1, 'name':'Time'}, 'value':'1 days'} ] }, 
+					'parametersDirection':[ 
+						{'parameter':{'id':1, 'name':'Time'}, 'value':'1 days'} ] }, 
 				{'direction':{'id':2, 'title':'Direction 2', 'description':'descrip 2', 'order':2}, 
-					'parametersTested':[ {'parameter':{'id':1, 'name':'Time'}, 'value':'12 hours'} ] } 
+					'parametersDirection':[ 
+						{'parameter':{'id':1, 'name':'Time'}, 'value':'12 hours'} ] } 
 			] 
 		}
 		
@@ -95,9 +115,9 @@ class TestingTestCase(TestCase):
 		r1 = Recipe.objects.get(id=1)
 		self.assertEqual(Test.objects.filter(recipe=r1).count(), 3)
 		
-		# Check that IngredientTested has 1 ingredient for this test
+		# Check that IngredientTested has 2 ingredients for this test
 		t = Test.objects.get(id=response.data.get('id'))
-		self.assertEqual(IngredientTested.objects.filter(test=t).count(), 1)
+		self.assertEqual(IngredientTested.objects.filter(test=t).count(), 2)
 		
 		# Check that DirectionTested has 2 directions for this test
 		self.assertEqual(DirectionTested.objects.filter(test=t).count(), 2)
@@ -128,26 +148,30 @@ class TestingTestCase(TestCase):
 	def test_update_ingredients_directions(self):
 		self.setup()
 		client = APIClient()
-			
+
 		data = { 
-			'ingredientsTested':[ {'id':2, 'ingredient':{'id':2, 'name':'Ingr2'}, 'amount':444, 'units':'grms'} ],
+			'ingredientsTested':[ 
+				{'id':2, 'ingredient':{'id':2, 'name':'Ingr2'}, 
+					'parametersIngredient':[ 
+						{'parameter':{'id':5, 'name':'Type'}, 'value':'The good one'} 
+					] 
+				}
+			],
 			'directionsTested':[ 
 				{ 'id':1, 'direction':{'id':1, 'title':'Direction 1', 'description':'descrip 1', 'order':1}, 
-					'parametersTested':[
+					'parametersDirection':[
 						{'parameter':{'id':1, 'name':'Time'}, 'value':'444 days'}, 
-						{'parameter':{'id':3, 'name':'Place'}, 'value':'toilet'}] 
-				} ] 
+						{'parameter':{'id':3, 'name':'Place'}, 'value':'toilet'}
+					] 
+				} 
+			] 
 		}
 		
 		response = client.put('/tests/1/', data, format='json')
 		
 		# Check that the response is 200 Ok
 		self.assertEqual(response.status_code, 200)
-		
-		# Check that amount is 444
-		ingredientTested2 = IngredientTested.objects.get(id=2)
-		self.assertEqual(ingredientTested2.amount, 444)
-		
+				
 		# Check that number of ingredients tested is not still 2
 		test1 = Test.objects.get(id=1)
 		ingredients = IngredientTested.objects.filter(test=test1)
@@ -166,3 +190,5 @@ class TestingTestCase(TestCase):
 		# Check that the response is 200 Ok
 		self.assertEqual(response.status_code, 200)
 		
+
+	# TO-DO: Case when there are two ingredients tested with the same ingredient but different type or brand (parameter ingredient)

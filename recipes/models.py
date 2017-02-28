@@ -45,19 +45,25 @@ class IngredientTested(models.Model):
 	brand = models.CharField(max_length=60, null=True)
 	type = models.CharField(max_length=60, null=True)
 
-# Testing parameters table
-class Parameter(models.Model):
-	name = models.CharField(max_length=100, null=True)
-	
 # Direction tested table
 class DirectionTested(models.Model):
 	direction = models.ForeignKey(Direction, on_delete=models.CASCADE)
 	test = models.ForeignKey(Test, related_name='directionsTested', on_delete=models.CASCADE)
 	done = models.BooleanField(default=False)
-	
-class ParameterTested(models.Model):
+
+# Testing parameters table
+class Parameter(models.Model):
+	name = models.CharField(max_length=100, null=True)
+
+# Parameters for ingredient tested
+class ParameterIngredient(models.Model):
 	parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
-	directionTested = models.ForeignKey(DirectionTested, related_name='parametersTested', on_delete=models.CASCADE)
+	ingredientTested = models.ForeignKey(IngredientTested, related_name='parametersIngredient', on_delete=models.CASCADE)
+	value = models.CharField(max_length=100, null=True)
+	
+class ParameterDirection(models.Model):
+	parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
+	directionTested = models.ForeignKey(DirectionTested, related_name='parametersDirection', on_delete=models.CASCADE)
 	value = models.CharField(max_length=100, null=True)
 
 # # Category feedback of the test
