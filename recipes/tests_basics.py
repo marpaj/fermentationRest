@@ -22,21 +22,6 @@ class BasicsTestCase(TestCase):
 		
 		# Recipe id=2 with one ingredient stored
 		Recipe.objects.create(id=2, name='Recipe 2', ingredients=[])
-	
-	def test_get_ingredient_list(self):
-		self.setup()
-		client = APIClient()
-		
-		response = client.get('/ingredients/', format='json')
-		
-		# Check that the response is 200 OK
-		self.assertEqual(response.status_code, 200)
-		
-		# Check that number of ingredients is 3
-		# stream = BytesIO(response.data)
-		# data = JSONParser().parse(stream)
-		# serializer = IngredientSerializer(data=data)
-		# serializer.is_valid()
 		
 	def test_get_parameter_list(self):
 		self.setup()

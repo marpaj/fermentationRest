@@ -4,6 +4,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 
 class RecipeList(generics.ListCreateAPIView):
@@ -56,10 +57,17 @@ class RecipeIngredientView(APIView):
 		
 		recipe.ingredients.remove(ingredient)
 		return Response(status=status.HTTP_204_NO_CONTENT)
-	
+
 class IngredientList(generics.ListCreateAPIView):
-	queryset = Ingredient.objects.all()
 	serializer_class = IngredientSerializer
+
+	def get_queryset(self):
+		name = self.request.query_params.get('name', None)
+
+		if name is not None:
+			return Ingredient.objects.filter(name__startswith=name)
+		else:
+			return Ingredient.objects.all()
 	
 class IngredientDetail(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Ingredient.objects.all()
